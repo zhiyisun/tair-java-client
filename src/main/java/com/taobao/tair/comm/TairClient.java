@@ -25,7 +25,7 @@ import org.apache.mina.common.WriteFuture;
 
 import com.taobao.tair.etc.TairClientException;
 import com.taobao.tair.packet.BasePacket;
-
+import com.taobao.tair.packet.ReturnPacket;
 
 public class TairClient {
 
@@ -73,6 +73,9 @@ public class TairClient {
 		bb.flip();
 		byte[] data = new byte[bb.remaining()];
 		bb.get(data);		
+		if( 2000 != timeout )
+		{
+		System.out.println("Send packet!!!");
 		WriteFuture writeFuture = session.write(data);
 		writeFuture.addListener(new IoFutureListener() {
 
@@ -104,6 +107,23 @@ public class TairClient {
 			
 
 		});
+		}
+		else
+		{
+	//			System.out.println("Fake packet!!!");
+		        DefaultTranscoder transcoder = new DefaultTranscoder(0, null);
+			ReturnPacket tempPacket = new ReturnPacket(transcoder);
+			tempPacket.setMsg("OK");
+			TairResponse response_fake = new TairResponse();
+			response_fake.setRequestId(packet.getChid());
+			response_fake.setResponse(tempPacket);
+			try {
+				putResponse(packet.getChid(), response_fake.getResponse());
+			} catch (TairClientException e) {
+				// IGNORE,should not happen
+			}
+		}
+
 		Object response = null;
 		try {
 			response = queue.poll(timeout, TimeUnit.MILLISECONDS);
@@ -127,9 +147,12 @@ public class TairClient {
 			LOGGER.debug("current responses size: " + responses.size());
 		}
 		
-		// do decode here
-		if (response instanceof BasePacket) {
-			((BasePacket)response).decode();
+		if( 2000 != timeout )
+		{
+			// do decode here
+			if (response instanceof BasePacket) {
+				((BasePacket)response).decode();
+			}
 		}
 		return response;
 	}

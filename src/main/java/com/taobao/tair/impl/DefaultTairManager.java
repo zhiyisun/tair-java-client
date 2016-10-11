@@ -251,6 +251,9 @@ public class DefaultTairManager implements TairManager {
 
 			configServer.checkConfigVersion(r.getConfigVersion());
 			return new Result<DataEntry>(rc, resultObject);
+		} else
+		{
+			rc = ResultCode.SUCCESS;
 		}
 		return new Result<DataEntry>(rc);
 	}
